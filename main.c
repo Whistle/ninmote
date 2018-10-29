@@ -12,7 +12,7 @@
 
 volatile uint8_t elapsed = 0;
 
-#define OFFSET 20
+#define OFFSET 100
 #define PANASONIC_HDR_MARK    (3502 - OFFSET)
 #define PANASONIC_HDR_SPACE   (1750 - OFFSET)
 #define PANASONIC_BIT_MARK    ( 502 - OFFSET)
@@ -27,12 +27,12 @@ ISR (TIMER1_COMPA_vect) {
 }
 
 inline void setup_t1_for_t(uint16_t t) {
-	TCCR1B &= ~(1<<CS11);
+	TCCR1B &= ~(1<<CS10);
 	cli();
 	TCNT1 = 0;
 	OCR1A = t - 1;
 	TIMSK = (1<<OCIE1A);
-	TCCR1B = (1<<WGM12) | (1<<CS11);
+	TCCR1B = (1<<WGM12) | (1<<CS10);
 	sei();
 }
 
@@ -51,12 +51,12 @@ inline void setup_t0_38khz() {
 
 inline void enable_t0_38khz() {
 	PORTB |= (1<<PORTB2);
-	TCCR0B |= (1<<CS01);
+	TCCR0B |= (1<<CS00);
 	TCCR0A |= (1<<COM0A0);
 }
 
 inline void disable_t0_38khz() {
-	TCCR0B &= ~(1<<CS01);
+	TCCR0B &= ~(1<<CS00);
 	TCCR0A &= ~(1<<COM0A0);
 	PORTB &= ~(1<<PORTB2);
 }
