@@ -4,80 +4,85 @@
  * Created: 23.10.2018 17:58:39
  * Author : Dom The Pom Johnson
  */ 
-#define F_CPU 1e6
-
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <stdint.h>
 
 #define LENGTH 12
 
-volatile uint8_t t_elapsed = 0;
+volatile uint8_t elapsed = 0;
 
-uint8_t one[] = {4, 0, 0, 4, 0, 1, 0, 0, 0, 8, 0, 9};
+#define OFFSET 20
+#define PANASONIC_HDR_MARK    (3502 - OFFSET)
+#define PANASONIC_HDR_SPACE   (1750 - OFFSET)
+#define PANASONIC_BIT_MARK    ( 502 - OFFSET)
+#define PANASONIC_ONE_SPACE   (1244 - OFFSET)
+#define PANASONIC_ZERO_SPACE  ( 400 - OFFSET)
+
+//uint32_t one[] = {4, 0, 0, 4, 0, 1, 0, 0, 0, 8, 0, 9};
+const uint32_t one[] = {0b0100000000000100, 0b00000001000000000000100000001001};
 
 ISR (TIMER1_COMPA_vect) {
-	t_elapsed += 1;
+	elapsed = 1;
 }
 
-void setup_t1_for_t() {
-	TCCR1B &= ~(1<<CS10);
+inline void setup_t1_for_t(uint16_t t) {
+	TCCR1B &= ~(1<<CS11);
 	cli();
-	t_elapsed = 0;
 	TCNT1 = 0;
-	OCR1A = 400 - 1;
+	OCR1A = t - 1;
 	TIMSK = (1<<OCIE1A);
-	TCCR1B = (1<<WGM12) | (1<<CS10);
+	TCCR1B = (1<<WGM12) | (1<<CS11);
 	sei();
 }
 
-void wait_for_x_t(uint8_t x) {
-	setup_t1_for_t();
-	while(t_elapsed < x);
+inline void wait_for_x_t(uint16_t t) {
+	elapsed = 0;
+	setup_t1_for_t(t);
+	while(!elapsed);
 }
 
-void setup_t0_38khz() {
+inline void setup_t0_38khz() {
 	DDRB |= (1<<DDB2);
 	TCCR0A = (1<<WGM01) | (1<<COM0A0);
 	TCCR0B = 0; // disable timer0
-	OCR0A = 12; // frequency
+	OCR0A = 10; // frequency
 }
 
-void enable_t0_38khz() {
-	TCCR0B |= (1<<CS00);
+inline void enable_t0_38khz() {
+	PORTB |= (1<<PORTB2);
+	TCCR0B |= (1<<CS01);
 	TCCR0A |= (1<<COM0A0);
 }
 
-void disable_t0_38khz() {
-	TCCR0B &= ~(1<<CS00);
+inline void disable_t0_38khz() {
+	TCCR0B &= ~(1<<CS01);
 	TCCR0A &= ~(1<<COM0A0);
+	PORTB &= ~(1<<PORTB2);
 }
 
-void send(uint8_t * data)
+void send(const uint32_t * data)
 {
-	int i;
-	int b;
 	enable_t0_38khz();
-	wait_for_x_t(8);
+	wait_for_x_t(PANASONIC_HDR_MARK);
 	disable_t0_38khz();
-	wait_for_x_t(4);
-	for(i = 0; i < LENGTH; i++) {
-		for(b = 0; b < 4; b++) {
-			if((data[i] << b) & 0b1000) {
-				enable_t0_38khz();
-				wait_for_x_t(1);
-				disable_t0_38khz();
-				wait_for_x_t(3);
-			} else {
-				enable_t0_38khz();
-				wait_for_x_t(1);
-				disable_t0_38khz();
-				wait_for_x_t(1);
-			}
-		}
+	wait_for_x_t(PANASONIC_HDR_SPACE);
+	for (uint32_t  mask = 1UL << (16 - 1);  mask;  mask >>= 1) {
+		enable_t0_38khz();
+		wait_for_x_t(PANASONIC_BIT_MARK);
+		disable_t0_38khz();
+		if (data[0] & mask)  wait_for_x_t(PANASONIC_ONE_SPACE) ;
+		else                 wait_for_x_t(PANASONIC_ZERO_SPACE) ;
+	}
+	for (uint32_t  mask = 1UL << (32 - 1);  mask;  mask >>= 1) {
+		enable_t0_38khz();
+		wait_for_x_t(PANASONIC_BIT_MARK);
+		disable_t0_38khz();
+		if (data[1] & mask)  wait_for_x_t(PANASONIC_ONE_SPACE) ;
+		else                 wait_for_x_t(PANASONIC_ZERO_SPACE) ;
 	}
 	enable_t0_38khz();
-	wait_for_x_t(1);
+	wait_for_x_t(PANASONIC_BIT_MARK);
 	disable_t0_38khz();
 }
 
@@ -85,12 +90,10 @@ int main(void)
 {
     /* Replace with your application code */
 	setup_t0_38khz();
-	
-	
     while (1) 
     {
 			send(one);
-			wait_for_x_t(100);
+			wait_for_x_t(50000);
     }
 }
 
