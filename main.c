@@ -12,8 +12,6 @@
 #define PRESSED 1
 #define RELEASED 2
 
-#define LENGTH 12
-
 volatile uint8_t elapsed = 0;
 
 #define OFFSET 100
