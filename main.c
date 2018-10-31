@@ -7,6 +7,10 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <stdint.h>
+#include "bucket.h"
+
+#define PRESSED 1
+#define RELEASED 2
 
 #define LENGTH 12
 
@@ -37,11 +41,31 @@ const uint32_t btn_p_down[]	= {0x100ACAD};
 const uint32_t btn_v_up[]	= {0x1000405};
 const uint32_t btn_v_down[]	= {0x1008485};
 	
-const uint32_t btn_mute[]	= {0x4004, 0x1004C4D};
+const uint32_t btn_mute[]	= {0x1004C4D};
 
 
 ISR (TIMER1_COMPA_vect) {
 	elapsed = 1;
+}
+
+static int button_pressed(struct bucket_t *button, uint8_t pin_state) {
+	static uint8_t pressed = 0;
+
+	// update bucket level
+	update_bucket(button, pin_state);
+
+	// button pressed long time
+	if(bucket_empty(button) && !pressed) {
+		pressed = 1;
+		return PRESSED;
+	}
+
+	// button released
+	if(bucket_full(button) && pressed) {
+		pressed = 0;
+		return RELEASED;
+	}
+	return 0;
 }
 
 inline void setup_t1_for_t(uint16_t t) {
@@ -104,14 +128,26 @@ void send(const uint32_t * data)
 	disable_t0_38khz();
 }
 
+void setup_inputs()
+{
+	DDRB &= ~(1<<DDB1);
+	PORTB |= (1<<PORTB1);
+}
+
 int main(void)
 {
+	uint8_t state = 0;
+	struct bucket_t pb;
+	init_bucket(&pb,200); 
     /* Replace with your application code */
 	setup_t0_38khz();
+	setup_inputs();
     while (1) 
     {
-			send(btn_off);
-			wait_for_x_t(50000);
+			state = button_pressed(&pb, !(PINB & (1<<PINB1)));
+			if(state == PRESSED) {
+				send(btn_off);
+			}
     }
 }
 
