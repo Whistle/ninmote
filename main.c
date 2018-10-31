@@ -49,7 +49,7 @@ inline void setup_t1_for_t(uint16_t t) {
 	cli();
 	TCNT1 = 0;
 	OCR1A = t - 1;
-	TIMSK = (1<<OCIE1A);
+	TIMSK1 = (1<<OCIE1A);
 	TCCR1B = (1<<WGM12) | (1<<CS10);
 	sei();
 }
@@ -61,14 +61,14 @@ inline void wait_for_x_t(uint16_t t) {
 }
 
 inline void setup_t0_38khz() {
-	DDRB |= (1<<DDB2);
+	DDRD |= (1<<DDD6);
 	TCCR0A = (1<<WGM01) | (1<<COM0A0);
 	TCCR0B = 0; // disable timer0
 	OCR0A = 10; // frequency
 }
 
 inline void enable_t0_38khz() {
-	PORTB |= (1<<PORTB2);
+	PORTD |= (1<<PORTD6);
 	TCCR0B |= (1<<CS00);
 	TCCR0A |= (1<<COM0A0);
 }
@@ -76,7 +76,7 @@ inline void enable_t0_38khz() {
 inline void disable_t0_38khz() {
 	TCCR0B &= ~(1<<CS00);
 	TCCR0A &= ~(1<<COM0A0);
-	PORTB &= ~(1<<PORTB2);
+	PORTD &= ~(1<<PORTD6);
 }
 
 void send(const uint32_t * data)
