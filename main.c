@@ -86,7 +86,7 @@ inline void setup_t0_38khz() {
 	DDRD |= (1<<DDD6);
 	TCCR0A = (1<<WGM01) | (1<<COM0A0);
 	TCCR0B = 0; // disable timer0
-	OCR0A = 10; // frequency
+	OCR0A = 14; // frequency
 }
 
 inline void enable_t0_38khz() {
