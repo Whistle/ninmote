@@ -8,6 +8,7 @@
 #include <avr/interrupt.h>
 #include <stdint.h>
 #include "bucket.h"
+#include "carrier.h"
 
 #define PRESSED 1
 #define RELEASED 2
@@ -80,31 +81,6 @@ inline void wait_for_x_t(uint16_t t) {
 	elapsed = 0;
 	setup_t1_for_t(t);
 	while(!elapsed);
-}
-
-void setup_carrier_frequency() {
-	TCCR0A = (1<<COM0A1) | (1<<COM0B1) | (1<<WGM01) | (1<<WGM00);
-	TCCR0B = (1<<WGM02);
-	
-	/* OC0B to output */
-	DDRD |= (1<<DDD5);
-	/* 1MHz / 26 = ~38461 Hz */
-	OCR0A = 26;
-	/* 20% duty cycle */
-	OCR0B = OCR0A / 5;
-}
-
-inline void enable_carrier_frequency() {
-	TCNT0 = 0;
-	PORTD |= (1<<PORTD5);
-	TCCR0A |= (1<<COM0A1) | (1<<COM0B1);
-	TCCR0B |= (1<<CS00);
-}
-
-inline void disable_carrier_frequency() {
-	TCCR0B &= ~(1<<CS00);
-	TCCR0A &= ~(1<<COM0A1 | 1<<COM0B1);
-	PORTD &= ~(1<<PORTD5);
 }
 
 void send(const uint32_t * data)
