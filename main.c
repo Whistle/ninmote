@@ -5,15 +5,13 @@
  * Author : Dom The Pom Johnson
  */ 
 #include <avr/io.h>
-#include <avr/interrupt.h>
 #include <stdint.h>
 #include "bucket.h"
 #include "carrier.h"
+#include "delay.h"
 
 #define PRESSED 1
 #define RELEASED 2
-
-volatile uint8_t elapsed = 0;
 
 #define PANASONIC_HDR_MARK    3405
 #define PANASONIC_HDR_SPACE   1700
@@ -42,11 +40,6 @@ const uint32_t btn_v_down[]	= {0x1008485};
 	
 const uint32_t btn_mute[]	= {0x1004C4D};
 
-
-ISR (TIMER1_COMPA_vect) {
-	elapsed = 1;
-}
-
 static int button_pressed(struct bucket_t *button, uint8_t pin_state) {
 	static uint8_t pressed = 0;
 
@@ -65,22 +58,6 @@ static int button_pressed(struct bucket_t *button, uint8_t pin_state) {
 		return RELEASED;
 	}
 	return 0;
-}
-
-inline void setup_t1_for_t(uint16_t t) {
-	TCCR1B &= ~(1<<CS10);
-	cli();
-	TCNT1 = 0;
-	OCR1A = t - 1;
-	TIMSK1 = (1<<OCIE1A);
-	TCCR1B = (1<<WGM12) | (1<<CS10);
-	sei();
-}
-
-inline void wait_for_x_t(uint16_t t) {
-	elapsed = 0;
-	setup_t1_for_t(t);
-	while(!elapsed);
 }
 
 void send(const uint32_t * data)
