@@ -83,22 +83,25 @@ inline void wait_for_x_t(uint16_t t) {
 }
 
 inline void setup_t0_38khz() {
-	DDRD |= (1<<DDD6);
-	TCCR0A = (1<<WGM01) | (1<<COM0A0);
-	TCCR0B = 0; // disable timer0
-	OCR0A = 14; // frequency
+	DDRD |= (1<<DDD5);
+	
+	TCCR0A = (1<<COM0A1) | (1<<COM0B1) | (1<<WGM01) | (1<<WGM00);
+	TCCR0B = (1<<WGM02);
+	OCR0A = 26;
+	OCR0B = 8;
 }
 
 inline void enable_t0_38khz() {
-	PORTD |= (1<<PORTD6);
+	TCNT0 = 0;
+	PORTD |= (1<<PORTD5);
+	TCCR0A |= (1<<COM0A1) | (1<<COM0B1);
 	TCCR0B |= (1<<CS00);
-	TCCR0A |= (1<<COM0A0);
 }
 
 inline void disable_t0_38khz() {
 	TCCR0B &= ~(1<<CS00);
-	TCCR0A &= ~(1<<COM0A0);
-	PORTD &= ~(1<<PORTD6);
+	TCCR0A &= ~(1<<COM0A1 | 1<<COM0B1);
+	PORTD &= ~(1<<PORTD5);
 }
 
 void send(const uint32_t * data)
