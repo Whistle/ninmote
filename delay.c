@@ -8,7 +8,7 @@ ISR (TIMER1_COMPA_vect) {
 	elapsed = 1;
 }
 
-void setup_t1_for_t(uint16_t t) {
+static void setup_delay(uint16_t t) {
 	TCCR1B &= ~(1<<CS10);
 	cli();
 	TCNT1 = 0;
@@ -18,8 +18,8 @@ void setup_t1_for_t(uint16_t t) {
 	sei();
 }
 
-void wait_for_x_t(uint16_t t) {
+void wait_us(uint16_t t) {
 	elapsed = 0;
-	setup_t1_for_t(t);
+	setup_delay(t);
 	while(!elapsed);
 }

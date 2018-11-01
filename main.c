@@ -63,25 +63,25 @@ static int button_pressed(struct bucket_t *button, uint8_t pin_state) {
 void send(const uint32_t * data)
 {
 	enable_carrier_frequency();
-	wait_for_x_t(PANASONIC_HDR_MARK);
+	wait_us(PANASONIC_HDR_MARK);
 	disable_carrier_frequency();
-	wait_for_x_t(PANASONIC_HDR_SPACE);
+	wait_us(PANASONIC_HDR_SPACE);
 	for (uint32_t  mask = 1UL << (16 - 1);  mask;  mask >>= 1) {
 		enable_carrier_frequency();
-		wait_for_x_t(PANASONIC_BIT_MARK);
+		wait_us(PANASONIC_BIT_MARK);
 		disable_carrier_frequency();
-		if ((uint32_t)0x4004 & mask)  wait_for_x_t(PANASONIC_ONE_SPACE) ;
-		else                 wait_for_x_t(PANASONIC_ZERO_SPACE) ;
+		if ((uint32_t)0x4004 & mask)  wait_us(PANASONIC_ONE_SPACE) ;
+		else                 wait_us(PANASONIC_ZERO_SPACE) ;
 	}
 	for (uint32_t  mask = 1UL << (32 - 1);  mask;  mask >>= 1) {
 		enable_carrier_frequency();
-		wait_for_x_t(PANASONIC_BIT_MARK);
+		wait_us(PANASONIC_BIT_MARK);
 		disable_carrier_frequency();
-		if (*data & mask)  wait_for_x_t(PANASONIC_ONE_SPACE) ;
-		else                 wait_for_x_t(PANASONIC_ZERO_SPACE) ;
+		if (*data & mask)  wait_us(PANASONIC_ONE_SPACE) ;
+		else                 wait_us(PANASONIC_ZERO_SPACE) ;
 	}
 	enable_carrier_frequency();
-	wait_for_x_t(PANASONIC_BIT_MARK);
+	wait_us(PANASONIC_BIT_MARK);
 	disable_carrier_frequency();
 }
 
