@@ -140,7 +140,7 @@ int main(void)
 	uint8_t state = 0;
 	struct bucket_t pb;
 	init_bucket(&pb,200); 
-    /* Replace with your application code */
+	
 	setup_t0_38khz();
 	setup_inputs();
     while (1) 
