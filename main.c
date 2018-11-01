@@ -82,7 +82,7 @@ inline void wait_for_x_t(uint16_t t) {
 	while(!elapsed);
 }
 
-inline void setup_t0_38khz() {
+void setup_carrier_frequency() {
 	DDRD |= (1<<DDD5);
 	
 	TCCR0A = (1<<COM0A1) | (1<<COM0B1) | (1<<WGM01) | (1<<WGM00);
@@ -91,14 +91,14 @@ inline void setup_t0_38khz() {
 	OCR0B = OCR0A / 5;
 }
 
-inline void enable_t0_38khz() {
+inline void enable_carrier_frequency() {
 	TCNT0 = 0;
 	PORTD |= (1<<PORTD5);
 	TCCR0A |= (1<<COM0A1) | (1<<COM0B1);
 	TCCR0B |= (1<<CS00);
 }
 
-inline void disable_t0_38khz() {
+inline void disable_carrier_frequency() {
 	TCCR0B &= ~(1<<CS00);
 	TCCR0A &= ~(1<<COM0A1 | 1<<COM0B1);
 	PORTD &= ~(1<<PORTD5);
@@ -106,27 +106,27 @@ inline void disable_t0_38khz() {
 
 void send(const uint32_t * data)
 {
-	enable_t0_38khz();
+	enable_carrier_frequency();
 	wait_for_x_t(PANASONIC_HDR_MARK);
-	disable_t0_38khz();
+	disable_carrier_frequency();
 	wait_for_x_t(PANASONIC_HDR_SPACE);
 	for (uint32_t  mask = 1UL << (16 - 1);  mask;  mask >>= 1) {
-		enable_t0_38khz();
+		enable_carrier_frequency();
 		wait_for_x_t(PANASONIC_BIT_MARK);
-		disable_t0_38khz();
+		disable_carrier_frequency();
 		if ((uint32_t)0x4004 & mask)  wait_for_x_t(PANASONIC_ONE_SPACE) ;
 		else                 wait_for_x_t(PANASONIC_ZERO_SPACE) ;
 	}
 	for (uint32_t  mask = 1UL << (32 - 1);  mask;  mask >>= 1) {
-		enable_t0_38khz();
+		enable_carrier_frequency();
 		wait_for_x_t(PANASONIC_BIT_MARK);
-		disable_t0_38khz();
+		disable_carrier_frequency();
 		if (*data & mask)  wait_for_x_t(PANASONIC_ONE_SPACE) ;
 		else                 wait_for_x_t(PANASONIC_ZERO_SPACE) ;
 	}
-	enable_t0_38khz();
+	enable_carrier_frequency();
 	wait_for_x_t(PANASONIC_BIT_MARK);
-	disable_t0_38khz();
+	disable_carrier_frequency();
 }
 
 void setup_inputs()
@@ -141,7 +141,7 @@ int main(void)
 	struct bucket_t pb;
 	init_bucket(&pb,200); 
 	
-	setup_t0_38khz();
+	setup_carrier_frequency();
 	setup_inputs();
     while (1) 
     {
