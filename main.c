@@ -88,7 +88,7 @@ inline void setup_t0_38khz() {
 	TCCR0A = (1<<COM0A1) | (1<<COM0B1) | (1<<WGM01) | (1<<WGM00);
 	TCCR0B = (1<<WGM02);
 	OCR0A = 26;
-	OCR0B = 8;
+	OCR0B = OCR0A / 5;
 }
 
 inline void enable_t0_38khz() {
