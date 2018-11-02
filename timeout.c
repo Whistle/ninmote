@@ -2,8 +2,7 @@
 #include <avr/interrupt.h>
 #include "timeout.h"
 
-#define TIMEOUT_1S (1e6/1024/256) 
-#define TIMEOUT_COUNT (TIMEOUT_1S * 1)
+#define TIMEOUT_COUNT 1
 
 volatile uint8_t timedout = 0;
 

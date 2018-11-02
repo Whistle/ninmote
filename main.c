@@ -85,7 +85,6 @@ int main(void)
     {
 			state = button_pressed(&pb, !(PINB & (1<<PINB1)));
 			if(state == PRESSED) {
-				reset_timeout();
 				send(btn_off);
 			}
 			
