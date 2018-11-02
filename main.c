@@ -5,6 +5,8 @@
  * Author : Dom The Pom Johnson
  */ 
 #include <avr/io.h>
+#include <avr/interrupt.h>
+#include <avr/sleep.h>
 #include <stdint.h>
 
 #include "panasonic.h"
@@ -37,6 +39,10 @@ const uint32_t btn_mute[]	= {0x1004C4D};
 #define PRESSED 1
 #define RELEASED 2
 
+ISR (PCINT0_vect) {
+	
+}
+
 static int button_pressed(struct bucket_t *button, uint8_t pin_state) {
 	static uint8_t pressed = 0;
 
@@ -59,6 +65,9 @@ static int button_pressed(struct bucket_t *button, uint8_t pin_state) {
 
 void setup_inputs()
 {
+	PCICR |= (1<<PCIE0);
+	PCMSK0 |= (1<<PCINT1);
+	
 	DDRB &= ~(1<<DDB1);
 	PORTB |= (1<<PORTB1);
 }
@@ -69,8 +78,6 @@ int main(void)
 	struct bucket_t pb;
 	init_bucket(&pb,200); 
 	
-	DDRD &= ~(1<<DDD6);
-	
 	setup_carrier_frequency();
 	setup_inputs();
 	setup_timeout();
@@ -79,12 +86,18 @@ int main(void)
 			state = button_pressed(&pb, !(PINB & (1<<PINB1)));
 			if(state == PRESSED) {
 				reset_timeout();
-				PORTD &= ~(1<<PORTD6);
 				send(btn_off);
 			}
 			
 			if(timeout()) {
-				PORTD |= (1<<PORTD6);
+				set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+				cli();
+				sleep_enable();
+				sei();
+				sleep_cpu();
+				sleep_disable();
+				sei();
+				reset_timeout();
 			}
     }
 }
