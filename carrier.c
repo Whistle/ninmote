@@ -1,6 +1,8 @@
 #include <avr/io.h>
+#include <avr/interrupt.h>
 
 void setup_carrier_frequency() {
+	cli();
 	TCCR0A = (1<<COM0A1) | (1<<COM0B1) | (1<<WGM01) | (1<<WGM00);
 	TCCR0B = (1<<WGM02);
 	
@@ -10,6 +12,7 @@ void setup_carrier_frequency() {
 	OCR0A = 26;
 	/* 20% duty cycle */
 	OCR0B = OCR0A / 5;
+	sei();
 }
 
 void enable_carrier_frequency() {
