@@ -69,13 +69,22 @@ int main(void)
 	struct bucket_t pb;
 	init_bucket(&pb,200); 
 	
+	DDRD &= ~(1<<DDD6);
+	
 	setup_carrier_frequency();
 	setup_inputs();
+	setup_timeout();
     while (1) 
     {
 			state = button_pressed(&pb, !(PINB & (1<<PINB1)));
 			if(state == PRESSED) {
+				reset_timeout();
+				PORTD &= ~(1<<PORTD6);
 				send(btn_off);
+			}
+			
+			if(timeout()) {
+				PORTD |= (1<<PORTD6);
 			}
     }
 }
